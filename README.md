@@ -1,2 +1,2 @@
-# tensorflow-class-activation-mapping
-Learning Deep Features for Discriminative Localization (2016)
+# Learning Deep Features for Discriminative Localization
+https://arxiv.org/abs/1512.04150
