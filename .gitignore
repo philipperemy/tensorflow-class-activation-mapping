@@ -87,3 +87,7 @@ ENV/
 
 # Rope project settings
 .ropeproject
+
+do-not-commit
+.idea
+.DS_Store
