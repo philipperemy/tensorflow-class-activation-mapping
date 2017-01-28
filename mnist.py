@@ -5,6 +5,21 @@ from skimage.io import imsave
 from camap import get_classmap
 from lenet_slim import le_net
 from utils import read_dataset
+from glob import glob
+from natsort import natsorted, ns
+
+import errno
+import os
+
+
+def mkdir_p(path):
+    try:
+        os.makedirs(path)
+    except OSError as exc:  # Python >2.5
+        if exc.errno == errno.EEXIST and os.path.isdir(path):
+            pass
+        else:
+            raise
 
 
 def next_batch(arr, arr2, index, slice_size, debug=False):
@@ -49,6 +64,8 @@ init = tf.initialize_all_variables()
 correct_prediction = tf.equal(tf.argmax(y, 1), y_)
 accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
+saver = tf.train.Saver(tf.all_variables(), max_to_keep=10)
+
 sess = tf.Session()
 sess.run(init)
 
@@ -58,27 +75,40 @@ sess.run(init)
 batch_size = 256
 
 
-def inspect_cmap(_images_test, _labels_test, i):
-    imsave('out/image_test.png', _images_test[0])
-    img = _images_test[0:1]
-    label = _labels_test[0:1]
-    conv6_val, output_val = sess.run([last_conv, y], feed_dict={x: img})
-    classmap_answer = sess.run(class_activation_map, feed_dict={y_: label, last_conv: conv6_val})
-    classmap_vis = list(map(lambda x: ((x - x.min()) / (x.max() - x.min())), classmap_answer))
-    for vis, ori in zip(classmap_vis, img):
-        print(ori.shape)
-        print(vis.shape)
-        plt.imshow(1 - ori)
-        plt.imshow(vis, cmap=plt.cm.jet, alpha=0.5, interpolation='nearest')
-        plt.savefig('out/cmap_{}.png'.format(i))
-        plt.close()
+def inspect_cmap(_images_test, _labels_test, i, size):
+    for s in range(size):
+        output_dir = 'out/{}/'.format(s)
+        mkdir_p(output_dir)
+        imsave('{}/image_test.png'.format(output_dir), _images_test[s])
+        img = _images_test[s:s + 1]
+        label = _labels_test[s:s + 1]
+        conv6_val, output_val = sess.run([last_conv, y], feed_dict={x: img})
+        classmap_answer = sess.run(class_activation_map, feed_dict={y_: label, last_conv: conv6_val})
+        classmap_vis = list(map(lambda x: ((x - x.min()) / (x.max() - x.min())), classmap_answer))
+        for vis, ori in zip(classmap_vis, img):
+            # print(ori.shape)
+            # print(vis.shape)
+            plt.imshow(1 - ori)
+            plt.imshow(vis, cmap=plt.cm.jet, alpha=0.5, interpolation='nearest')
+            plt.savefig('{}/cmap_{}.png'.format(output_dir, i))
+            plt.close()
 
 
-for i in range(0, 100000):
+checkpoints = natsorted(glob('checkpoints/my-model*'), key=lambda y: y.lower())
+start_i = 0
+if len(checkpoints) > 0:
+    checkpoint = checkpoints[-2]
+    saver.restore(sess, checkpoint)
+    print('checkpoint restored =', checkpoint)
+    start_i = int(checkpoint.split('-')[-1]) + 1
+
+for i in range(start_i, 100000):
+
     batch_xs, batch_ys, _ = next_batch(images_train, labels_train, i, batch_size)
     sess.run(train_step, feed_dict={x: batch_xs, y_: batch_ys})
 
     if i % 100 == 0:
+        saver.save(sess, 'checkpoints/my-model', global_step=i)
         accuracy_list = []
         j = 0
         while True:
@@ -90,4 +120,4 @@ for i in range(0, 100000):
         print(accuracy_list)
         print('steps =', i * batch_size, 'mean accuracy =', np.mean(accuracy_list))
 
-        inspect_cmap(images_test, labels_test, i)
+        inspect_cmap(images_test, labels_test, i, size=10)
