@@ -105,7 +105,7 @@ def next_batch(arr, arr2, index, slice_size, debug=False):
 
 
 def restore(sess, saver):
-    checkpoints = natsorted(glob('checkpoints/my-model*'), key=lambda y: y.lower())
+    checkpoints = natsorted(glob('checkpoints/mnist-cluttered*'), key=lambda y: y.lower())
     start_i = 0
     if len(checkpoints) > 0:
         checkpoint = checkpoints[-2]
@@ -117,7 +117,7 @@ def restore(sess, saver):
 
 def save(sess, saver, i):
     mkdir_p('checkpoints')
-    saver.save(sess, 'checkpoints/my-model', global_step=i)
+    saver.save(sess, 'checkpoints/mnist-cluttered', global_step=i)
 
 
 if __name__ == '__main__':
