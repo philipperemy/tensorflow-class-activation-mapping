@@ -6,11 +6,13 @@ https://arxiv.org/abs/1512.04150
 ## How to use it?
 
 ```
+# For Python 3. Should also work for Python2 :)
 git clone git@github.com:philipperemy/tensorflow-class-activation-mapping.git
-cd tensorflow-class-activation-mapping/data
+cd tensorflow-class-activation-mapping
+pip3 install -r requirements.txt
 mkdir /tmp/img
 tar xvzf data/mnist_cluttered.tar.gz -C /tmp/img
-python mnist.py # The heatmaps are available in out/
+python3 mnist.py # The heatmaps are available in out/
 ```
 
 ## Abstract
@@ -47,6 +49,13 @@ The output of the **Class Activation Map** is provided below, at different steps
 <div align="center">
   <img src="img/result.png"><br><br>
 </div>
+
+The overall accuracy on the testing set, per step:
+<div align="center">
+  <img src="img/accuracy_mnist_cluttered.png" width="400px"><br><br>
+</div>
+
+
 
 ## CALTECH256 dataset with AlexNet pretrained with ImageNet
 
