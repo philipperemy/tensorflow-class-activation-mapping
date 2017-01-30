@@ -1,9 +1,24 @@
+import errno
+import os
 from glob import glob
 
 import numpy as np
 import skimage.io
 import skimage.transform
 import tensorflow as tf
+from natsort import natsorted
+
+from mnist import batch_size
+
+
+def mkdir_p(path):
+    try:
+        os.makedirs(path)
+    except OSError as exc:
+        if exc.errno == errno.EEXIST and os.path.isdir(path):
+            pass
+        else:
+            raise
 
 
 def new_conv_layer(bottom, filter_shape, name):
@@ -58,22 +73,52 @@ def load_image(path):
     except:
         return None
 
-    if img is None: return None
-    if len(img.shape) < 2: return None
-    if len(img.shape) == 4: return None
-    if len(img.shape) == 2: img = np.tile(img[:, :, None], 3)
-    if img.shape[2] == 4: img = img[:, :, :3]
-    if img.shape[2] > 4: return None
+    if img is None:
+        return None
+    if len(img.shape) < 2:
+        return None
+    if len(img.shape) == 4:
+        return None
+    if len(img.shape) == 2:
+        img = np.tile(img[:, :, None], 3)
+    if img.shape[2] == 4:
+        img = img[:, :, :3]
+    if img.shape[2] > 4:
+        return None
 
     img /= 255.
-
-    # short_edge = min(img.shape[:2])
-    # yy = int((img.shape[0] - short_edge) / 2)
-    # xx = int((img.shape[1] - short_edge) / 2)
-    # crop_img = img[yy:yy + short_edge, xx:xx + short_edge]
-    # resized_img = skimage.transform.resize(crop_img, [224, 224])
     return img
 
 
 if __name__ == '__main__':
     read_dataset(0.01)
+
+
+def next_batch(arr, arr2, index, slice_size, debug=False):
+    has_reset = False
+    index *= batch_size
+    updated_index = index % len(arr)
+    if updated_index + slice_size > len(arr):
+        updated_index = 0
+        has_reset = True
+    beg = updated_index
+    end = updated_index + slice_size
+    if debug:
+        print(beg, end)
+    return arr[beg:end], arr2[beg:end], has_reset
+
+
+def restore(sess, saver):
+    checkpoints = natsorted(glob('checkpoints/my-model*'), key=lambda y: y.lower())
+    start_i = 0
+    if len(checkpoints) > 0:
+        checkpoint = checkpoints[-2]
+        saver.restore(sess, checkpoint)
+        print('checkpoint restored =', checkpoint)
+        start_i = int(checkpoint.split('-')[-1]) + 1
+    return start_i
+
+
+def save(sess, saver, i):
+    mkdir_p('checkpoints')
+    saver.save(sess, 'checkpoints/my-model', global_step=i)
