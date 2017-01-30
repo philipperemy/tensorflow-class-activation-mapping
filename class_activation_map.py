@@ -31,7 +31,7 @@ def inspect_class_activation_map(sess, class_activation_map, top_conv,
         classmap_vis = list(map(lambda x: ((x - x.min()) / (x.max() - x.min())), classmap_answer))
         for vis, ori in zip(classmap_vis, img):
             plt.imshow(1 - ori)
-            plt.imshow(vis, cmap=plt.cm.jet, alpha=0.5, interpolation='nearest')
+            plt.imshow(vis, cmap=plt.cm.jet, alpha=0.5, interpolation='nearest', vmin=0, vmax=1)
             cmap_file = '{}/cmap_{}.png'.format(output_dir, global_step)
             plt.savefig(cmap_file)
             plt.close()
