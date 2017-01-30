@@ -24,7 +24,7 @@ https://arxiv.org/abs/1512.04150
 
 
 
-## Toy example on MNIST cluttered dataset
+## MNIST cluttered dataset with LeNet
 
 *LeNet* was used on the [MNIST cluttered dataset]((https://github.com/deepmind/mnist-cluttered)), provided by DeepMind.
 We removed the last fully connected layers and replaced them with the **Class Activation Map**.
@@ -33,7 +33,11 @@ The accuracy was 97% after 50 epochs. Here is an example of an input image:
   <img src="img/image_test.png"><br><br>
 </div>
 
-And the output of the **Class Activation Map**, at different steps:
+The output of the **Class Activation Map** is provided below, at different steps:
 <div align="center">
   <img src="img/result.png"><br><br>
 </div>
+
+## CALTECH256 dataset with AlexNet pretrained with ImageNet
+
+Coming soon!
