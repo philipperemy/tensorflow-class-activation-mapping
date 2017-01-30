@@ -3,9 +3,10 @@ from lenet_slim import le_net
 from utils import *
 
 batch_size = 256
+dataset_percentage = 1.0 # 1.0 takes 100k rows. 0.1 takes 10k rows.
 
 if __name__ == '__main__':
-    [images_train, labels_train], [images_test, labels_test] = read_dataset(0.01)
+    [images_train, labels_train], [images_test, labels_test] = read_dataset(dataset_percentage)
     print('Finished reading the dataset...')
 
     im_width = images_train.shape[1]
