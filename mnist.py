@@ -5,7 +5,8 @@ from utils import *
 batch_size = 256
 
 if __name__ == '__main__':
-    [images_train, labels_train], [images_test, labels_test] = read_dataset(0.01)
+    [images_train, labels_train], [images_test, labels_test] = read_dataset(1.)
+    print('Finished reading the dataset...')
 
     im_width = images_train.shape[1]
     im_height = images_train.shape[1]
@@ -30,11 +31,13 @@ if __name__ == '__main__':
     sess = tf.Session()
     sess.run(init)
     step_start = restore(sess, saver)
+    print('Finished initializing the model...')
 
     # steps = 4300800 mean accuracy = 0.950446
     # steps = 6476800 mean accuracy = 0.953348
     # steps = 23475200 mean accuracy = 0.965719
     for i in range(step_start, 100000):
+        print(i)
         batch_xs, batch_ys, _ = next_batch(images_train, labels_train, i, batch_size)
         sess.run(train_step, feed_dict={x: batch_xs, y_: batch_ys})
 
