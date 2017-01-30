@@ -90,10 +90,6 @@ def load_image(path):
     return img
 
 
-if __name__ == '__main__':
-    read_dataset(0.01)
-
-
 def next_batch(arr, arr2, index, slice_size, debug=False):
     has_reset = False
     index *= batch_size
@@ -122,3 +118,7 @@ def restore(sess, saver):
 def save(sess, saver, i):
     mkdir_p('checkpoints')
     saver.save(sess, 'checkpoints/my-model', global_step=i)
+
+
+if __name__ == '__main__':
+    read_dataset(0.01)

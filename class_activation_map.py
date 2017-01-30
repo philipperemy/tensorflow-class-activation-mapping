@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 import tensorflow as tf
 from skimage.io import imsave
-
 from utils import mkdir_p
 
 
