@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import tensorflow as tf
 from skimage.io import imsave
+
 from utils import mkdir_p
 
 
@@ -31,5 +32,6 @@ def inspect_class_activation_map(sess, class_activation_map, top_conv,
         for vis, ori in zip(classmap_vis, img):
             plt.imshow(1 - ori)
             plt.imshow(vis, cmap=plt.cm.jet, alpha=0.5, interpolation='nearest')
-            plt.savefig('{}/cmap_{}.png'.format(output_dir, global_step))
+            cmap_file = '{}/cmap_{}.png'.format(output_dir, global_step)
+            plt.savefig(cmap_file)
             plt.close()
