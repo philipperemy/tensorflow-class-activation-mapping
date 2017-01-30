@@ -28,7 +28,7 @@ https://arxiv.org/abs/1512.04150
 
 *LeNet* was used on the [MNIST cluttered dataset]((https://github.com/deepmind/mnist-cluttered)), provided by DeepMind.
 We removed the last fully connected layers and replaced them with the **Class Activation Map**.
-The accuracy was 97% after 50 epochs. Here is an example of an input image:
+The accuracy was 97% after 50 epochs. Here is an example of an input image (9):
 <div align="center">
   <img src="img/image_test.png"><br><br>
 </div>
