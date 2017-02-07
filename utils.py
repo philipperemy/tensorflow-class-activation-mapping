@@ -5,10 +5,7 @@ from glob import glob
 import numpy as np
 import skimage.io
 import skimage.transform
-import tensorflow as tf
 from natsort import natsorted
-
-from mnist import batch_size
 
 
 def mkdir_p(path):
@@ -22,6 +19,7 @@ def mkdir_p(path):
 
 
 def new_conv_layer(bottom, filter_shape, name):
+    import tensorflow as tf
     with tf.variable_scope(name) as scope:
         w = tf.get_variable(
             "W",
@@ -67,7 +65,7 @@ def read_dataset(percentage=1.0, cutoff=0.7):
     return [images[:separator], labels[:separator]], [images[separator:], labels[separator:]]
 
 
-def load_image(path):
+def load_image(path, im_width=None):
     try:
         img = skimage.io.imread(path).astype(float)
     except:
@@ -87,10 +85,20 @@ def load_image(path):
         return None
 
     img /= 255.
-    return img
+
+    if im_width is not None:
+        short_edge = min(img.shape[:2])
+        yy = int((img.shape[0] - short_edge) / 2)
+        xx = int((img.shape[1] - short_edge) / 2)
+        crop_img = img[yy:yy + short_edge, xx:xx + short_edge]
+        resized_img = skimage.transform.resize(crop_img, [im_width, im_width])
+        return resized_img
+    else:
+        return img
 
 
 def next_batch(arr, arr2, index, slice_size, debug=False):
+    from mnist import batch_size
     has_reset = False
     index *= batch_size
     updated_index = index % len(arr)
@@ -104,8 +112,8 @@ def next_batch(arr, arr2, index, slice_size, debug=False):
     return arr[beg:end], arr2[beg:end], has_reset
 
 
-def restore(sess, saver):
-    checkpoints = natsorted(glob('checkpoints/mnist-cluttered*'), key=lambda y: y.lower())
+def restore(sess, saver, query='checkpoints/mnist-cluttered*'):
+    checkpoints = natsorted(glob(query), key=lambda y: y.lower())
     start_i = 0
     if len(checkpoints) > 0:
         checkpoint = checkpoints[-2]
@@ -115,9 +123,9 @@ def restore(sess, saver):
     return start_i
 
 
-def save(sess, saver, i):
+def save(sess, saver, i, query='checkpoints/mnist-cluttered'):
     mkdir_p('checkpoints')
-    saver.save(sess, 'checkpoints/mnist-cluttered', global_step=i)
+    saver.save(sess, query, global_step=i)
 
 
 if __name__ == '__main__':

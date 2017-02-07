@@ -8,32 +8,35 @@
 # Weights from Caffe converted using https://github.com/ethereon/caffe-tensorflow      #
 ########################################################################################
 
-import tensorflow as tf
-import numpy as np
-from scipy.misc import imread, imresize
-from imagenet_classes import class_names
 from time import time
+
+import numpy as np
+import tensorflow as tf
+from scipy.misc import imread, imresize
+
+from imagenet_classes import class_names
 
 
 class vgg16(object):
-    def __init__(self, imgs, weights=None, sess=None, class_activation_map=False):
-        self.imgs = imgs
-        self.convlayers()
+    def __init__(self, images_placeholder, weights=None, sess=None, class_activation_map=False, num_classes=2):
+        self.parameters = []
+        self.num_classes = num_classes
+        self.images_placeholder = images_placeholder
+        self.conv_layers()
         if class_activation_map:
             self.class_activation_map()
         else:
             self.fc_layers()
-        self.probs = tf.nn.softmax(self.fc3l)
         if weights is not None and sess is not None:
             self.load_weights(weights, sess)
+        self.output = self.fc3l
+        self.probs = tf.nn.softmax(self.output)
 
-    def convlayers(self):
-        self.parameters = []
-
+    def conv_layers(self):
         # zero-mean input
         with tf.name_scope('preprocess') as scope:
             mean = tf.constant([123.68, 116.779, 103.939], dtype=tf.float32, shape=[1, 1, 1, 3], name='img_mean')
-            images = self.imgs - mean
+            images = self.images_placeholder - mean
 
         # conv1_1
         with tf.name_scope('conv1_1') as scope:
@@ -216,10 +219,15 @@ class vgg16(object):
     def class_activation_map(self):
         # cam - maybe add another conv layer here.
         gap = tf.reduce_mean(self.pool5, (1, 2))
-        with tf.variable_scope('GAP'):
-            gap_w = tf.get_variable('W', shape=[512, 1000], initializer=tf.random_normal_initializer(0., 0.01))
+        with tf.name_scope('GAP'):
+            gap_w = tf.Variable(tf.truncated_normal([512, self.num_classes],
+                                                    dtype=tf.float32,
+                                                    stddev=0.01), name='W')
+            # gap_w = tf.get_variable('W', shape=[512, self.num_classes],
+            #                        initializer=tf.random_normal_initializer(0., 0.01))
         logits = tf.matmul(gap, gap_w)
         self.fc3l = logits
+        self.gap_w = gap_w
         self.parameters += [gap_w]
 
     def fc_layers(self):
@@ -249,10 +257,10 @@ class vgg16(object):
 
         # fc3
         with tf.name_scope('fc3') as scope:
-            fc3w = tf.Variable(tf.truncated_normal([4096, 1000],
+            fc3w = tf.Variable(tf.truncated_normal([4096, self.num_classes],
                                                    dtype=tf.float32,
                                                    stddev=1e-1), name='weights')
-            fc3b = tf.Variable(tf.constant(1.0, shape=[1000], dtype=tf.float32),
+            fc3b = tf.Variable(tf.constant(1.0, shape=[self.num_classes], dtype=tf.float32),
                                trainable=True, name='biases')
             self.fc3l = tf.nn.bias_add(tf.matmul(self.fc2, fc3w), fc3b)
             self.parameters += [fc3w, fc3b]
@@ -265,14 +273,15 @@ class vgg16(object):
                 print(i, k, np.shape(weights[k]))
                 sess.run(self.parameters[i].assign(weights[k]))
             except:
-                print("sizes dismatch. It's normal. Don't worry.")
+                sess.run(tf.initialize_variables([self.parameters[i]]))
+                print("sizes mismatch. It's normal. Don't worry.")
 
 
 if __name__ == '__main__':
     old = time()
     sess = tf.Session()
-    imgs = tf.placeholder(tf.float32, [None, 224, 224, 3])
-    vgg = vgg16(imgs, 'vgg16_weights.npz', sess, class_activation_map=False)
+    imgs_placeholder = tf.placeholder(tf.float32, [None, 224, 224, 3])
+    vgg = vgg16(imgs_placeholder, 'vgg16_weights.npz', sess, class_activation_map=False)
 
     # sess.run(tf.initialize_all_variables())  # initialize the new conv layers and the class activation map.
 
@@ -281,7 +290,7 @@ if __name__ == '__main__':
 
     print('Init took {0:.3f} seconds.'.format(time() - old))
 
-    prob = sess.run(vgg.probs, feed_dict={vgg.imgs: [img1]})[0]
+    prob = sess.run(vgg.probs, feed_dict={vgg.images_placeholder: [img1]})[0]
     preds = (np.argsort(prob)[::-1])[0:5]
     for p in preds:
         print(class_names[p], prob[p])
