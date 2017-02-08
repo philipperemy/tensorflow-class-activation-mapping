@@ -19,6 +19,7 @@ from imagenet_classes import class_names
 
 class vgg16(object):
     def __init__(self, images_placeholder, weights=None, sess=None, class_activation_map=False, num_classes=2):
+        self.train_conv_layer = False
         self.parameters = []
         self.num_classes = num_classes
         self.images_placeholder = images_placeholder
@@ -27,8 +28,7 @@ class vgg16(object):
             self.class_activation_map()
         else:
             self.fc_layers()
-        if weights is not None and sess is not None:
-            self.load_weights(weights, sess)
+        self.load_weights(weights, sess)
         self.output = self.fc3l
         self.probs = tf.nn.softmax(self.output)
 
@@ -41,10 +41,11 @@ class vgg16(object):
         # conv1_1
         with tf.name_scope('conv1_1') as scope:
             kernel = tf.Variable(tf.truncated_normal([3, 3, 3, 64], dtype=tf.float32,
-                                                     stddev=1e-1), name='weights')
+                                                     stddev=1e-1), name='weights',
+                                 trainable=self.train_conv_layer)
             conv = tf.nn.conv2d(images, kernel, [1, 1, 1, 1], padding='SAME')
             biases = tf.Variable(tf.constant(0.0, shape=[64], dtype=tf.float32),
-                                 trainable=True, name='biases')
+                                 trainable=self.train_conv_layer, name='biases')
             out = tf.nn.bias_add(conv, biases)
             self.conv1_1 = tf.nn.relu(out, name=scope)
             self.parameters += [kernel, biases]
@@ -52,10 +53,11 @@ class vgg16(object):
         # conv1_2
         with tf.name_scope('conv1_2') as scope:
             kernel = tf.Variable(tf.truncated_normal([3, 3, 64, 64], dtype=tf.float32,
-                                                     stddev=1e-1), name='weights')
+                                                     stddev=1e-1), name='weights',
+                                 trainable=self.train_conv_layer)
             conv = tf.nn.conv2d(self.conv1_1, kernel, [1, 1, 1, 1], padding='SAME')
             biases = tf.Variable(tf.constant(0.0, shape=[64], dtype=tf.float32),
-                                 trainable=True, name='biases')
+                                 trainable=self.train_conv_layer, name='biases')
             out = tf.nn.bias_add(conv, biases)
             self.conv1_2 = tf.nn.relu(out, name=scope)
             self.parameters += [kernel, biases]
@@ -70,10 +72,11 @@ class vgg16(object):
         # conv2_1
         with tf.name_scope('conv2_1') as scope:
             kernel = tf.Variable(tf.truncated_normal([3, 3, 64, 128], dtype=tf.float32,
-                                                     stddev=1e-1), name='weights')
+                                                     stddev=1e-1), name='weights',
+                                 trainable=self.train_conv_layer)
             conv = tf.nn.conv2d(self.pool1, kernel, [1, 1, 1, 1], padding='SAME')
             biases = tf.Variable(tf.constant(0.0, shape=[128], dtype=tf.float32),
-                                 trainable=True, name='biases')
+                                 trainable=self.train_conv_layer, name='biases')
             out = tf.nn.bias_add(conv, biases)
             self.conv2_1 = tf.nn.relu(out, name=scope)
             self.parameters += [kernel, biases]
@@ -81,10 +84,11 @@ class vgg16(object):
         # conv2_2
         with tf.name_scope('conv2_2') as scope:
             kernel = tf.Variable(tf.truncated_normal([3, 3, 128, 128], dtype=tf.float32,
-                                                     stddev=1e-1), name='weights')
+                                                     stddev=1e-1), name='weights',
+                                 trainable=self.train_conv_layer)
             conv = tf.nn.conv2d(self.conv2_1, kernel, [1, 1, 1, 1], padding='SAME')
             biases = tf.Variable(tf.constant(0.0, shape=[128], dtype=tf.float32),
-                                 trainable=True, name='biases')
+                                 trainable=self.train_conv_layer, name='biases')
             out = tf.nn.bias_add(conv, biases)
             self.conv2_2 = tf.nn.relu(out, name=scope)
             self.parameters += [kernel, biases]
@@ -99,10 +103,11 @@ class vgg16(object):
         # conv3_1
         with tf.name_scope('conv3_1') as scope:
             kernel = tf.Variable(tf.truncated_normal([3, 3, 128, 256], dtype=tf.float32,
-                                                     stddev=1e-1), name='weights')
+                                                     stddev=1e-1), name='weights',
+                                 trainable=self.train_conv_layer)
             conv = tf.nn.conv2d(self.pool2, kernel, [1, 1, 1, 1], padding='SAME')
             biases = tf.Variable(tf.constant(0.0, shape=[256], dtype=tf.float32),
-                                 trainable=True, name='biases')
+                                 trainable=self.train_conv_layer, name='biases')
             out = tf.nn.bias_add(conv, biases)
             self.conv3_1 = tf.nn.relu(out, name=scope)
             self.parameters += [kernel, biases]
@@ -110,10 +115,11 @@ class vgg16(object):
         # conv3_2
         with tf.name_scope('conv3_2') as scope:
             kernel = tf.Variable(tf.truncated_normal([3, 3, 256, 256], dtype=tf.float32,
-                                                     stddev=1e-1), name='weights')
+                                                     stddev=1e-1), name='weights',
+                                 trainable=self.train_conv_layer)
             conv = tf.nn.conv2d(self.conv3_1, kernel, [1, 1, 1, 1], padding='SAME')
             biases = tf.Variable(tf.constant(0.0, shape=[256], dtype=tf.float32),
-                                 trainable=True, name='biases')
+                                 trainable=self.train_conv_layer, name='biases')
             out = tf.nn.bias_add(conv, biases)
             self.conv3_2 = tf.nn.relu(out, name=scope)
             self.parameters += [kernel, biases]
@@ -121,10 +127,11 @@ class vgg16(object):
         # conv3_3
         with tf.name_scope('conv3_3') as scope:
             kernel = tf.Variable(tf.truncated_normal([3, 3, 256, 256], dtype=tf.float32,
-                                                     stddev=1e-1), name='weights')
+                                                     stddev=1e-1), name='weights',
+                                 trainable=self.train_conv_layer)
             conv = tf.nn.conv2d(self.conv3_2, kernel, [1, 1, 1, 1], padding='SAME')
             biases = tf.Variable(tf.constant(0.0, shape=[256], dtype=tf.float32),
-                                 trainable=True, name='biases')
+                                 trainable=self.train_conv_layer, name='biases')
             out = tf.nn.bias_add(conv, biases)
             self.conv3_3 = tf.nn.relu(out, name=scope)
             self.parameters += [kernel, biases]
@@ -139,10 +146,11 @@ class vgg16(object):
         # conv4_1
         with tf.name_scope('conv4_1') as scope:
             kernel = tf.Variable(tf.truncated_normal([3, 3, 256, 512], dtype=tf.float32,
-                                                     stddev=1e-1), name='weights')
+                                                     stddev=1e-1), name='weights',
+                                 trainable=self.train_conv_layer)
             conv = tf.nn.conv2d(self.pool3, kernel, [1, 1, 1, 1], padding='SAME')
             biases = tf.Variable(tf.constant(0.0, shape=[512], dtype=tf.float32),
-                                 trainable=True, name='biases')
+                                 trainable=self.train_conv_layer, name='biases')
             out = tf.nn.bias_add(conv, biases)
             self.conv4_1 = tf.nn.relu(out, name=scope)
             self.parameters += [kernel, biases]
@@ -150,10 +158,11 @@ class vgg16(object):
         # conv4_2
         with tf.name_scope('conv4_2') as scope:
             kernel = tf.Variable(tf.truncated_normal([3, 3, 512, 512], dtype=tf.float32,
-                                                     stddev=1e-1), name='weights')
+                                                     stddev=1e-1), name='weights',
+                                 trainable=self.train_conv_layer)
             conv = tf.nn.conv2d(self.conv4_1, kernel, [1, 1, 1, 1], padding='SAME')
             biases = tf.Variable(tf.constant(0.0, shape=[512], dtype=tf.float32),
-                                 trainable=True, name='biases')
+                                 trainable=self.train_conv_layer, name='biases')
             out = tf.nn.bias_add(conv, biases)
             self.conv4_2 = tf.nn.relu(out, name=scope)
             self.parameters += [kernel, biases]
@@ -161,10 +170,11 @@ class vgg16(object):
         # conv4_3
         with tf.name_scope('conv4_3') as scope:
             kernel = tf.Variable(tf.truncated_normal([3, 3, 512, 512], dtype=tf.float32,
-                                                     stddev=1e-1), name='weights')
+                                                     stddev=1e-1), name='weights',
+                                 trainable=self.train_conv_layer)
             conv = tf.nn.conv2d(self.conv4_2, kernel, [1, 1, 1, 1], padding='SAME')
             biases = tf.Variable(tf.constant(0.0, shape=[512], dtype=tf.float32),
-                                 trainable=True, name='biases')
+                                 trainable=self.train_conv_layer, name='biases')
             out = tf.nn.bias_add(conv, biases)
             self.conv4_3 = tf.nn.relu(out, name=scope)
             self.parameters += [kernel, biases]
@@ -179,10 +189,11 @@ class vgg16(object):
         # conv5_1
         with tf.name_scope('conv5_1') as scope:
             kernel = tf.Variable(tf.truncated_normal([3, 3, 512, 512], dtype=tf.float32,
-                                                     stddev=1e-1), name='weights')
+                                                     stddev=1e-1), name='weights',
+                                 trainable=self.train_conv_layer)
             conv = tf.nn.conv2d(self.pool4, kernel, [1, 1, 1, 1], padding='SAME')
             biases = tf.Variable(tf.constant(0.0, shape=[512], dtype=tf.float32),
-                                 trainable=True, name='biases')
+                                 trainable=self.train_conv_layer, name='biases')
             out = tf.nn.bias_add(conv, biases)
             self.conv5_1 = tf.nn.relu(out, name=scope)
             self.parameters += [kernel, biases]
@@ -190,10 +201,11 @@ class vgg16(object):
         # conv5_2
         with tf.name_scope('conv5_2') as scope:
             kernel = tf.Variable(tf.truncated_normal([3, 3, 512, 512], dtype=tf.float32,
-                                                     stddev=1e-1), name='weights')
+                                                     stddev=1e-1), name='weights',
+                                 trainable=self.train_conv_layer)
             conv = tf.nn.conv2d(self.conv5_1, kernel, [1, 1, 1, 1], padding='SAME')
             biases = tf.Variable(tf.constant(0.0, shape=[512], dtype=tf.float32),
-                                 trainable=True, name='biases')
+                                 trainable=self.train_conv_layer, name='biases')
             out = tf.nn.bias_add(conv, biases)
             self.conv5_2 = tf.nn.relu(out, name=scope)
             self.parameters += [kernel, biases]
@@ -201,10 +213,11 @@ class vgg16(object):
         # conv5_3
         with tf.name_scope('conv5_3') as scope:
             kernel = tf.Variable(tf.truncated_normal([3, 3, 512, 512], dtype=tf.float32,
-                                                     stddev=1e-1), name='weights')
+                                                     stddev=1e-1), name='weights',
+                                 trainable=self.train_conv_layer)
             conv = tf.nn.conv2d(self.conv5_2, kernel, [1, 1, 1, 1], padding='SAME')
             biases = tf.Variable(tf.constant(0.0, shape=[512], dtype=tf.float32),
-                                 trainable=True, name='biases')
+                                 trainable=self.train_conv_layer, name='biases')
             out = tf.nn.bias_add(conv, biases)
             self.conv5_3 = tf.nn.relu(out, name=scope)
             self.parameters += [kernel, biases]
@@ -222,7 +235,7 @@ class vgg16(object):
         with tf.name_scope('GAP'):
             gap_w = tf.Variable(tf.truncated_normal([512, self.num_classes],
                                                     dtype=tf.float32,
-                                                    stddev=0.01), name='W')
+                                                    stddev=0.01), name='W', trainable=True)
             # gap_w = tf.get_variable('W', shape=[512, self.num_classes],
             #                        initializer=tf.random_normal_initializer(0., 0.01))
         logits = tf.matmul(gap, gap_w)
@@ -266,15 +279,24 @@ class vgg16(object):
             self.parameters += [fc3w, fc3b]
 
     def load_weights(self, weight_file, sess):
+
+        if weight_file is None:
+            print('weight_file is EMPTY. initialize_all_variables()')
+            sess.run(tf.initialize_all_variables())
+            return
+        else:
+            print('weight_file is [{}]'.format(weight_file))
+
         weights = np.load(weight_file)
         keys = sorted(weights.keys())
         for i, k in enumerate(keys):
             try:
-                print(i, k, np.shape(weights[k]))
+                print(i, k, np.shape(weights[k]), end=' ')
                 sess.run(self.parameters[i].assign(weights[k]))
+                print('Successfully loaded [OK]')
             except:
                 sess.run(tf.initialize_variables([self.parameters[i]]))
-                print("sizes mismatch. It's normal. Don't worry.")
+                print('Could not load the weights for this layer. Skipping. [KO].')
 
 
 if __name__ == '__main__':
