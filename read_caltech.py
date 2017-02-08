@@ -2,10 +2,10 @@ import os
 
 import numpy as np
 import pandas as pd
-
+from natsort import natsorted
 from utils import mkdir_p
 
-DATASET_PATH = './data/256_ObjectCategories/'
+DATASET_PATH = '/tmp/caltech/256_ObjectCategories/'
 PROCESSED_DATASET_PATH = '/tmp/caltech/'
 
 TRAINSET_PATH = PROCESSED_DATASET_PATH + 'train.pickle'
@@ -17,7 +17,7 @@ mkdir_p(PROCESSED_DATASET_PATH)
 
 def read_caltech(force_generation=False, max_label_count=None):
     if force_generation or not os.path.exists(TRAINSET_PATH):
-        image_dir_list = os.listdir(DATASET_PATH)
+        image_dir_list = natsorted(os.listdir(DATASET_PATH))
 
         if max_label_count is not None:
             print('GOING TO TRUNCATE THE DATASET TO ONLY {} CLASSES.'.format(max_label_count))
@@ -61,6 +61,12 @@ def read_caltech(force_generation=False, max_label_count=None):
         test_set = pd.read_pickle(TESTSET_PATH)
         label_dict = pd.read_pickle(LABEL_DICT_PATH)
         n_labels = len(label_dict)
+
+    print('label_dict = ', label_dict)
+    print('train_set LENGTH = ', len(train_set))
+    print('test_set LENGTH = ', len(test_set))
+    print('n_labels = ', n_labels)
+
     return train_set, test_set, label_dict, n_labels
 
 
