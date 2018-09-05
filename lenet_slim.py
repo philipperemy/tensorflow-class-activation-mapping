@@ -11,7 +11,7 @@ def le_net(images, num_classes=10, scope='LeNet'):
         net = slim.max_pool2d(net, [2, 2], 2, scope='pool2')
         gap = tf.reduce_mean(net, (1, 2))
         with tf.variable_scope('GAP'):
-            gap_w = tf.get_variable('W', shape=[64, 10], initializer=tf.random_normal_initializer(0., 0.01))
+            gap_w = tf.get_variable('W', shape=[64, num_classes], initializer=tf.random_normal_initializer(0., 0.01))
         logits = tf.matmul(gap, gap_w)
     return logits, net
 
