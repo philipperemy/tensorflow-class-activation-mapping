@@ -5,7 +5,7 @@ https://arxiv.org/abs/1512.04150
 
 ## How to use it?
 
-```
+```bash
 # For Python 3. Should also work for Python2 :)
 git clone git@github.com:philipperemy/tensorflow-class-activation-mapping.git
 cd tensorflow-class-activation-mapping
